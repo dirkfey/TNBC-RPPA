@@ -1,3 +1,6 @@
+%% Analysis of responsiveness:
+%  Summarize number of significant changes (in netwok nodes) per cell line
+%  (summarised over treatments: number; average over treatments: fold-change (FC))
 
 %% Select drugs and analytes and pre-process data:
 
