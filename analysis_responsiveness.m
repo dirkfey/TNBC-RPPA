@@ -22,9 +22,30 @@ dataFCSign_selected.Number_responsive = sum(dataFCSign_selected{:,myAnalytes},2)
 responsive = sortrows ( ...
   groupsummary(dataFCSign_selected,'cellLines','sum','Number_responsive'), ...
   'sum_Number_responsive', 'descend')
+
+figure(1), clf
+bar(responsive.sum_Number_responsive/12)
+set(gca, 'xTickLabels', responsive.cellLines)
+ylabel(sprintf('Average number of nodes\nchanging per treatment'))
+
+fpos = get(gcf, 'Position');
+set(gcf, 'Position', [fpos(1:2), 400 250])
+%
+print(sprintf('../figures/fig_responsivenes_number'), '-dpng', '-r600')
+
+
 %% Compute the mean average FC per analyte and treatment 
-dataFC_selected.AvgFC = mean(dataFC_selected{:,myAnalytes},2)
+dataFC_selected.AvgFC = mean(abs(dataFC_selected{:,myAnalytes}),2)
 responsiveFC = sortrows ( ...
   groupsummary(dataFC_selected,'cellLines','mean','AvgFC'), ...
   'mean_AvgFC', 'descend')
 
+figure(2), clf
+bar(responsiveFC.mean_AvgFC)
+set(gca, 'xTickLabels', responsiveFC.cellLines)
+ylabel(sprintf('Average absolute log2 FC\nper node and treatment'))
+
+fpos = get(gcf, 'Position');
+set(gcf, 'Position', [fpos(1:2), 400 250])
+%
+print(sprintf('../figures/fig_responsivenes_FC'), '-dpng', '-r600')
