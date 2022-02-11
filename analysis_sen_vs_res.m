@@ -1,7 +1,10 @@
+%% Differential expression analysis of (phospho-)proteins: resistant vs sensitive cells
+%  Requires: dataMean
+
 %load dataRPPAmean.mat
 load mat_dataMean.mat
 
-%%
+%% Pre-process data:
 
 data_ctr = dataMean(dataMean.Treatment == "DMSO",:);
 
@@ -21,7 +24,7 @@ expr_sen = DataMatrix(data_sen{:,3:end}', 'Colnames', data_sen.CellLine, 'RowNam
 expr_res = log2(expr_res);
 expr_sen = log2(expr_sen);
 
-%%
+%% Perform differential analysis using permutation tests
 [pvalues,tscores] = mattest(expr_sen, expr_res, ...
                     'permute',1000);
 [pFDR, qvalues] = mafdr(pvalues);
@@ -30,7 +33,7 @@ clear diffstruct upstruct downstruct
 diffstruct = mavolcanoplot(expr_sen, expr_res, pFDR, 'PCutoff', 0.05, 'FoldChange', 2)
 diffstruct_fc1p5 = mavolcanoplot(expr_sen, expr_res, pFDR, 'PCutoff', 0.05, 'FoldChange', 1.5)
 
-%% Plotspead and Boxplot figres
+%% Visualise results #1: Plotspead and Boxplot figures of |log2 FC| > 2 & pval < 0.05
 for i=1:length(diffstruct.PValues)
     analyte = diffstruct.PValues.RowNames{i};
     pval = diffstruct.PValues(analyte,1);
@@ -56,8 +59,11 @@ for i=1:length(diffstruct.PValues)
     print(sprintf('../figures/fig_sen_vs_res_boxplot_%u_%s.png', i, analyte), '-dpng', '-r600')
 end
 
-%% Look at PI3K/AKT module in more detail: Plotspead and Boxplot figres
+%% Visualise results #1: Look at PI3K/AKT module in particular: |log2 FC| > 2 & pval < 0.05
+
+% Focus on these analytes:
 myanalytes = {'PI3KalPha', 'PDK1', 'PDK1_S241_', 'AKT_S473_', 'p27_T157_'};
+% Make distribution boxplots:
 for i=1:length(myanalytes)
     analyte = myanalytes{i};
     pval = diffstruct_fc1p5.PValues(analyte,1);
@@ -83,17 +89,19 @@ for i=1:length(myanalytes)
     print(sprintf('../figures/fig_sen_vs_res_boxplot_AKTaxis_%u_%s.png', i, analyte), '-dpng', '-r600')
 end
 
-%% Heatmap clustergram
+%% Visualise results #4: Heatmap clustergrams 
 expr = [expr_sen expr_res];
 %expr('Casp7_cl',:) = [];
 [imputeidx1, imputeidx2]= find(expr<1e-6);
 expr(imputeidx1, imputeidx2)=NaN;
 expr = expr-nanmean(expr,2);
 expr(imputeidx1, imputeidx2)=0;
+% Clustergramm #1 for |log2 FC| > 2 & pval < 0.05:
 cgo1 = clustergram(expr(diffstruct.GeneLabels,:), 'Cluster', 1, 'Colormap', 'redbluecmap');
+% Clustergramm #1 for |log2 FC| > 1.5 & pval < 0.05:
 cgo2 = clustergram(expr(diffstruct_fc1p5.GeneLabels,:), 'Cluster', 1, 'Colormap', 'redbluecmap');
 
-%%
+%% Export clustergrams to heatmap figure
 plot(cgo1)
 fpos = get(gcf, 'Position');
 set(gcf,'Position', [fpos(1:2) 450 650])
@@ -101,19 +109,9 @@ set(gcf,'Position', [fpos(1:2) 450 650])
 print(gcf, '../figures/heatmap_sen_vs_res.svg', '-dsvg')
 print(gcf, '../figures/heatmap_sen_vs_res.png', '-dpng', '-r600')
 
-%%
 plot(cgo2)
 fpos = get(gcf, 'Position');
 set(gcf,'Position', [fpos(1:2) 450 850])
 
 print(gcf, '../figures/heatmap_sen_vs_res_fc1p5.svg', '-dsvg')
 print(gcf, '../figures/heatmap_sen_vs_res_fc1p5.png', '-dpng', '-r600')
-
-
-%% look at akt inh. in detail
-load mat_dataFoldChange.mat
-AKTinh = dataFoldChange_allwIC50(dataFoldChange_allwIC50.Treatment=="Ipatasertib",:);
-%%
-AKTinh = sortrows(AKTinh, 'IC50')
-
-
