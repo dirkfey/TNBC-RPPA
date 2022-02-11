@@ -1,0 +1,34 @@
+## Temp code files
+*.asv
+
+*.fig 
+*.mat 
+*.mdl 
+*.mdlp 
+*.mexa64 
+*.mexw64 
+*.mexmaci64 
+*.mlapp 
+*.mldatx 
+*.mlproj 
+*.mlx 
+*.p 
+*.sfx 
+*.sldd 
+*.slreqx 
+*.slmx 
+*.sltx 
+*.slxc 
+*.slx
+*.slxp 
+
+## Other common  file types
+*.docx 
+*.exe 
+*.jpg 
+*.pdf 
+*.png 
+*.xlsx 
+
+## Figure files
+*.svg
