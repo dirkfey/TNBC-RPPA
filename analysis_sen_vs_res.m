@@ -24,7 +24,7 @@ expr_sen = DataMatrix(data_sen{:,3:end}', 'Colnames', data_sen.CellLine, 'RowNam
 expr_res = log2(expr_res);
 expr_sen = log2(expr_sen);
 
-%% Perform differential analysis using permutation tests
+%% Perform differential analysis using permutation two-sample t-tests
 [pvalues,tscores] = mattest(expr_sen, expr_res, ...
                     'permute',1000);
 [pFDR, qvalues] = mafdr(pvalues);
