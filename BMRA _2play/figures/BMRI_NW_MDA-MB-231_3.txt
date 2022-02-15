@@ -1,3 +1,0 @@
-Source: /code/BMRA/bmra_analysis_heatmaps.m
-Date: 19-Apr-2021 07:36:02
-Datafile: mat_BMRAresults.mat

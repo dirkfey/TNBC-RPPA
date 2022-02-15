@@ -2,7 +2,6 @@
 *.asv
 
 *.fig 
-*.mat 
 *.mdl 
 *.mdlp 
 *.mexa64 
@@ -32,3 +31,7 @@
 
 ## Figure files
 *.svg
+
+## Folders:
+/figs/*
+/figures/*
