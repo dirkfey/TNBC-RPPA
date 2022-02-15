@@ -5,8 +5,8 @@
 %
 %   Inputs: BMRAresults from bmra_run.m or saved in  mat_BMRAresults.mat
 %   Outputs: 
-%   1. '../../figures/BMRI_NW_[CELLLINE]_3.png'
-%   2. '../../figures/BMRI_consNW_Sensitive.png', '../../figures/BMRI_consNW_Resistant.png'
+%   1. '../figs/BMRI_NW_[CELLLINE]_3.png'
+%   2. '../figs/BMRI_consNW_Sensitive.png', '../../figures/BMRI_consNW_Resistant.png'
 %   Dependencies: df_pcolor, bmra_prepare_data
 
 %% Load data (or alternative run the pipeline: bmra_run.m)
@@ -43,15 +43,15 @@ for i=1:7
     th.Position(2) = 0.5;
     th.HorizontalAlignment = 'left';
     th.VerticalAlignment = 'bottom';
-    %
-    filename = sprintf('../../figures/BMRI_NW_%s_3', myCellLines(i));
-    print(gcf, [filename '.png'], '-dpng', '-r600')
-    %ANNOTATION:
-    fileID = fopen([filename '.txt'],'w');
-    fprintf(fileID, 'Source: /code/BMRA/bmra_analysis_heatmaps.m\n');
-    fprintf(fileID, 'Date: %s\n', datestr(now));
-    fprintf(fileID, 'Datafile: %s\n', datafile);
-    fclose(fileID);
+%     %
+%     filename = sprintf('../figs/BMRI_NW_%s_3', myCellLines(i));
+%     print(gcf, [filename '.png'], '-dpng', '-r600')
+%     %ANNOTATION:
+%     fileID = fopen([filename '.txt'],'w');
+%     fprintf(fileID, 'Source: /code/BMRA/bmra_analysis_heatmaps.m\n');
+%     fprintf(fileID, 'Date: %s\n', datestr(now));
+%     fprintf(fileID, 'Datafile: %s\n', datafile);
+%     fclose(fileID);
 end
 
 
@@ -75,14 +75,6 @@ myIntMat_all = [reshape(BMRAresults(1).BS',1,[])
 myIntMat_sens = myIntMat_all(1:3,:);
 myIntMat_resi = myIntMat_all(5:7,:);
 
-%% just have a look at some to double check
-idx1 = find(myNetwork=="AMPK_T172_");
-idx2 = find(myNetwork=="PTEN");
-nz = size(BMRAresults(1).BS')
-idx = sub2ind(nz, idx1, idx2)
-myIntMat_sens(:,idx)
-myIntMat_resi(:,idx)
-
 %%
 
 %Sensitive:
@@ -93,8 +85,6 @@ negInt = find(all(myIntMat_sens<0));
 %negInt = find(sum(myIntMat_sens<0)>1);
 negBS = mean(myIntMat_sens(:,negInt),1);
 
-[posInt; posBS]
-%%
 myConsNW = zeros(nNodes);
 myConsNW(posInt) = posBS;
 myConsNW(negInt) = negBS;
@@ -104,7 +94,7 @@ myConsNW_sens = myConsNW;
 myConsNW(idx2,idx1)
 
 
-%%
+%% Heatmap for consensus NW in sensitive cells
 figure(1), clf
    df_pcolor(myConsNW)
     hold on
@@ -129,8 +119,8 @@ figure(1), clf
     th.HorizontalAlignment = 'left';
     th.VerticalAlignment = 'bottom';
 
-filename = sprintf('../../figures/BMRI_consNW_Sensitive', myCellLines(i));
-%print(gcf, [filename '.png'], '-dpng', '-r600')
+%    filename = sprintf('../figs/BMRI_consNW_Sensitive', myCellLines(i));
+%    print(gcf, [filename '.png'], '-dpng', '-r600')
 %    %ANNOTATION:
 %    fileID = fopen([filename '.txt'],'w');
 %    fprintf(fileID, 'Source: /code/BMRA/bmra_analysis_heatmaps.m\n');
@@ -141,7 +131,7 @@ filename = sprintf('../../figures/BMRI_consNW_Sensitive', myCellLines(i));
  [i1 i2 ] = find(abs(myConsNW )~=0);
  [myNetwork(i2) myNetwork(i1)]
 
-%% Resistant
+%% Heatmap for consensus NW in resistant cells
 posInt = find(all(myIntMat_resi>0));
 %posInt = find(sum(myIntMat_resi>0)>1);
 posBS = mean(myIntMat_resi(:,posInt),1);
@@ -178,10 +168,10 @@ figure(2), clf
     th.HorizontalAlignment = 'left';
     th.VerticalAlignment = 'bottom';
     
-save 'mat_bmra_analysis_ConsNW.mat' myConsNW_sens myCOnsNW_resi myInteractionMatrix myNetwork
+%    save 'mat_bmra_analysis_ConsNW.mat' myConsNW_sens myCOnsNW_resi myInteractionMatrix myNetwork
 
-%filename = sprintf('../../figures/BMRI_consNW_Resistant', myCellLines(i))
-%print(gcf, [filename '.png'], '-dpng', '-r600')
+%    filename = sprintf('../figures/BMRI_consNW_Resistant', myCellLines(i))
+%    print(gcf, [filename '.png'], '-dpng', '-r600')
 %    %ANNOTATION:
 %    fileID = fopen([filename '.txt'],'w');
 %    fprintf(fileID, 'Source: /code/BMRA/bmra_analysis_heatmaps.m\n');

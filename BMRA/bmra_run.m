@@ -1,7 +1,8 @@
 % bmra_run ... Skript to run BMRA analysis on all cell lines
 %
-%   Input: 
-%   Outputs: 
+%   Input: ../mat_dataFoldChange.mat
+%   Outputs: mat_BMRAresults.mat (containing BMRAresults), 
+%            ../processeddata/NW_changes_sensVSresi.xlsx
 %   Dependencies: df_lump.m, ExecuteMultipleTimes.m, Net_inf_corrected.m,
 %       sample_corrected_student_t.m, InitialA.m, Prepare.m,
 %       Lp_AGivenY_new.m, proposeA1.m, sample_mini.m, sample_r_st.m, 
@@ -16,77 +17,69 @@ bmra_prepare_data
 
 myCellLines = ["MDA-MB-468" "CAL-85-1" "MDA-MB-231" 'MCF10A' 'HDQP-1' 'MDA-MB-157' 'MFM223'];    
 
-%myAnalytes = myNetwork';
    
 clear BMRAresults
 figure(99), clf
 for i=1:length(myCellLines)
-    % select cell line:
-    myCellLine = myCellLines(i);
-    %mySelection0 = dataFoldChangewIC50(dataFoldChangewIC50.CellLine==myCellLine,:);
-    mySelection0 = dataFoldChange_allwIC50(dataFoldChangewIC50.CellLine==myCellLine,:);
-    % log2 transform fold changes
-    mySelection0{:,3:end-1} = log2(mySelection0{:,3:end-1});
+  % select cell line:
+  myCellLine = myCellLines(i);
+  mySelection0 = dataFoldChange_allwIC50(dataFoldChangewIC50.CellLine==myCellLine,:);
+  % log2 transform fold changes
+  mySelection0{:,3:end-1} = log2(mySelection0{:,3:end-1});
 
-%Impute INFs
-tmp = (mySelection0{:,3:(end-1)});
-tmp(isinf(tmp)) = max(max(tmp(~isinf(tmp))));
-tmp(isnan(tmp)) = 1;
-mySelection0{:,3:(end-1)} = tmp
+  %Impute INFs
+  tmp = (mySelection0{:,3:(end-1)});
+  tmp(isinf(tmp)) = max(max(tmp(~isinf(tmp))));
+  tmp(isnan(tmp)) = 1;
+  mySelection0{:,3:(end-1)} = tmp
 
-[mask, idxAnalytes] = ismember(['CellLine'; 'Treatment'; convertStringsToChars(myAnalytes(:)); 'IC50'], mySelection0.Properties.VariableNames);
-mySelection0 = mySelection0(:,idxAnalytes(idxAnalytes>0));
-mask = ismember(mySelection0.Treatment,convertStringsToChars(myDrugs(:,1)));
-mySelection0(~mask,:) = [];
-[mySelection0] = df_lump(mySelection0, ["AKT_S473_" "AKT_T308_"], 'AKT_p');
-[mySelection0] = df_lump(mySelection0, ["mtor_s2481_" "mTOR_S2448_"], 'mTOR_p');
-[mySelection0] = df_lump(mySelection0, ["S6RIB_S235_" "S6RIB_S240_"], 'S6RIB_p');
+  [mask, idxAnalytes] = ismember(['CellLine'; 'Treatment'; convertStringsToChars(myAnalytes(:)); 'IC50'], mySelection0.Properties.VariableNames);
+  mySelection0 = mySelection0(:,idxAnalytes(idxAnalytes>0));
+  mask = ismember(mySelection0.Treatment,convertStringsToChars(myDrugs(:,1)));
+  mySelection0(~mask,:) = [];
+  %lump certain analytes:
+  [mySelection0] = df_lump(mySelection0, ["AKT_S473_" "AKT_T308_"], 'AKT_p');
+  [mySelection0] = df_lump(mySelection0, ["mtor_s2481_" "mTOR_S2448_"], 'mTOR_p');
+  [mySelection0] = df_lump(mySelection0, ["S6RIB_S235_" "S6RIB_S240_"], 'S6RIB_p');
 
-%Convert to DataMatrix 
-import bioma.data.*
-mySelection00 = sortrows(mySelection0, 'IC50');
-myDM = DataMatrix(mySelection00{:,3:end},'RowNames', mySelection00.Treatment,'ColNames', mySelection00.Properties.VariableNames(3:end) );
+  %Convert to DataMatrix 
+  import bioma.data.*
+  mySelection00 = sortrows(mySelection0, 'IC50');
+  myDM = DataMatrix(mySelection00{:,3:end},'RowNames', mySelection00.Treatment,'ColNames', mySelection00.Properties.VariableNames(3:end) );
 
-clear PS BS CS Rs 
-%filter high values out (mostly PTEN):
-%myDMM= double(myDM);
-%myDMM(myDMM>3) = 0;
-%myDMM(myDMM<-3) = 0;
-%myDM(:,:) = myDMM;
-
-%Set up global response matrix 
-R = [];
-for ii=1:nNodes;
+  clear PS BS CS Rs 
+  
+  %Set up global response matrix 
+  R = [];
+  for ii=1:nNodes;
     R = [R mySelection00{:,convertStringsToChars(myNetwork(ii))}];
-end
-%R(R>3)  = 0;
-%R(R<-3) = 0;
-R = R';
+  end
+  R = R';
 
-%set up interaction matrix 
-G0 = myInteractionMatrix;
-%G0(G0==0)=1; all interactions 
-for ii = 1:nNodes
+  %set up interaction matrix 
+  G0 = myInteractionMatrix;
+  for ii = 1:nNodes
     G0(ii,myPertubedNodes) = 1; %all interactions from perturbed nodes 
-end
-G0(:,1) = myInteractionMatrix(:,1); %Raf phos only MEK 
-G0(:,2) = myInteractionMatrix(:,2); %MEK only ERK
-G0(diag(ones(nNodes,1))==1)=0;
+  end
+  G0(:,1) = myInteractionMatrix(:,1); %Raf phos only MEK 
+  G0(:,2) = myInteractionMatrix(:,2); %MEK only ERK
+  G0(diag(ones(nNodes,1))==1)=0;
 
-readme = '[PS,BS,CS,Rs] = ExecuteMultipleTimes(R, myPert, G0, hyperp.noit , hyperp.burnin, hyperp.times);';
-[PS,BS,CS,Rs] = ExecuteMultipleTimes(R, myPert, G0, hyperp.noit , hyperp.burnin, hyperp.times);
+  readme = '[PS,BS,CS,Rs] = ExecuteMultipleTimes(R, myPert, G0, hyperp.noit , hyperp.burnin, hyperp.times);';
+  %Run BMRA
+  [PS,BS,CS,Rs] = ExecuteMultipleTimes(R, myPert, G0, hyperp.noit , hyperp.burnin, hyperp.times);
 
-clear Rs
+  clear Rs
 
-BMRAresults(i).CellLine=myCellLine;
-BMRAresults(i).PS=PS;
-BMRAresults(i).BS=BS;
-BMRAresults(i).CS=CS;
-BMRAresults(i).R = R;
-BMRAresults(i).data = mySelection00;
-BMRAresults(i).DM = myDM;
+  BMRAresults(i).CellLine=myCellLine;
+  BMRAresults(i).PS=PS;
+  BMRAresults(i).BS=BS;
+  BMRAresults(i).CS=CS;
+  BMRAresults(i).R = R;
+  BMRAresults(i).data = mySelection00;
+  BMRAresults(i).DM = myDM;
 
-%
+%Visualization:
 figure(99), 
 df_pcolor(BS.*(PS>0.0))
 hold on
@@ -100,7 +93,8 @@ set(gca, 'YDir', 'reverse')
 
 end
 
-save mat_BMRAresults.mat BMRAresults readme myPert G0 hyperp myCellLines
+% Uncomment to save result into mat file:
+% save mat_BMRAresults.mat BMRAresults readme myPert G0 hyperp myCellLines
     
 
 %% Testing on interactions:
@@ -136,32 +130,11 @@ myTest = [myTest ...
     array2table([myIntMat_sens(:,:)' myIntMat_resi(:,:)'], 'VariableNames', convertStringsToChars(replace(myCellLines([1 2 3 5 6 7]), "-", "_")) ) ];
 myTest = sortrows(myTest, 'pvalue', 'ascend')
 
-%writetable(myTest,'../../processeddata/NW_changes_sensVSresi.xlsx', 'Sheet', 'NW interactions')
-%writetable(table('Source:', '/code/BMRA/bmra_run.m'),'../../processeddata/NW_changes_sensVSresi.xlsx', 'Sheet', 'anno')
-%fileID = fopen('../../processeddata/NW_changes_sensVSresi_readme.txt','w');
+% Uncomment to write results into table:
+%writetable(myTest,'../processeddata/NW_changes_sensVSresi.xlsx', 'Sheet', 'NW interactions')
+%writetable(table('Source:', '/code/BMRA/bmra_run.m'),'../processeddata/NW_changes_sensVSresi.xlsx', 'Sheet', 'anno')
+%fileID = fopen('../processeddata/NW_changes_sensVSresi_readme.txt','w');
 %fprintf(fileID, 'Source: /code/BMRA/bmra_run.m\n');
 %fprintf(fileID, 'Date: %s\n', datestr(now));
 %fclose(fileID);
 
-figure(6), clf
-scatter(D,-log10(P))
-hold on
-plot(8*[-1 1], -log10([0.05 0.05]), 'k--')
-
-%% Look at some in detail just to double check
-idx2 = myNetwork=="AKT_p";
-idx = myNetwork=="p38MAPK_T180_";
-idx2 = myNetwork=="AMPK_T172_";
-idx = myNetwork=="PTEN";
-clear BSsens BSres
-for i=1:3
-BSsens(i,:) = BMRAresults(i).BS(idx,idx2);
-BSres(i,:) = BMRAresults(4+i).BS(idx,idx2);
-PSsens(i,:) = BMRAresults(i).PS(idx,idx2);
-PSres(i,:) = BMRAresults(4+i).PS(idx,idx2);
-end
-[BSsens', BSres'; PSsens', PSres']
-
-%table(BSsens, BSres)
-
-disp(myTest(3,:))

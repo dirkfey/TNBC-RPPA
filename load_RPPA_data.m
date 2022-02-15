@@ -1,20 +1,20 @@
 
-%load_RPPA_data ... skipt that imports the data from "..\rawdata\TNBC RPPA Panel 29.4.19 clean.xlsx"  
+%load_RPPA_data ... skipt that imports the data from ".\rawdata\TNBC RPPA Panel 29.4.19 clean.xlsx"  
 %   and processes it:
 %   1. Filter, 
 %   2. Calculate averages over replicates
 %   3. Calculate mean-fold changes and test statistical significance 
 %
-%   Input: ..\rawdata\TNBC RPPA Panel 29.4.19 clean.xlsx
+%   Input: .\rawdata\TNBC RPPA Panel 29.4.19 clean.xlsx
 %   Outputs: 
 %   1. dataRPPAraw_.mat, here
 %   2. mat_dataMean.mat, here
-%      ..\processeddata\RPPA_mean.xlsx
+%      .\processeddata\RPPA_mean.xlsx
 %   3. mat_dataFoldChange.mat 
-%      ../processeddata/dataFoldChange.xlsx
+%      ./processeddata/dataFoldChange.xlsx
 %   Dependencies: none
 
-dataRPPAraw = readtable('..\rawdata\TNBC RPPA Panel 29.4.19 clean.xlsx')
+dataRPPAraw = readtable('.\rawdata\TNBC RPPA Panel 29.4.19 clean.xlsx')
 
 %Remove lines 94, 96, 112
 
@@ -50,8 +50,8 @@ dataMean.Properties.VariableNames = dataRPPAfilt.Properties.VariableNames([1 3:e
 dataMeanwIC50 = join(dataMean, dataIC50, 'LeftKeys', 'CellLine','RightKeys', 'CellLine');
 
 %%
-writetable(dataMean, '..\processeddata\RPPA_mean.xlsx', 'Sheet', 'RPPA mean')
-writetable(table('Source:','load_RPPA_data.m', cd), '..\processeddata\RPPA_mean.xlsx', 'Sheet', 'anno')
+writetable(dataMean, '.\processeddata\RPPA_mean.xlsx', 'Sheet', 'RPPA mean')
+writetable(table('Source:','load_RPPA_data.m', cd), '.\processeddata\RPPA_mean.xlsx', 'Sheet', 'anno')
 save mat_dataMean.mat dataMean
 
 %% Test signficance of treatment changes
@@ -98,9 +98,9 @@ dataFoldChange_allwIC50.Properties.VariableNames(1:2) = {'CellLine', 'Treatment'
 head(dataFoldChangewIC50)
 
 %%
-writetable(dataFoldChange_allwIC50, '../processeddata/dataFoldChange.xlsx', 'Sheet', 'FC all')
-writetable(dataFoldChangewIC50, '../processeddata/dataFoldChange.xlsx', 'Sheet', 'FC significant')
-writetable(dataFCpvalue, '../processeddata/dataFoldChange.xlsx', 'Sheet', 'p-values')
+writetable(dataFoldChange_allwIC50, './processeddata/dataFoldChange.xlsx', 'Sheet', 'FC all')
+writetable(dataFoldChangewIC50, './processeddata/dataFoldChange.xlsx', 'Sheet', 'FC significant')
+writetable(dataFCpvalue, './processeddata/dataFoldChange.xlsx', 'Sheet', 'p-values')
 writetable(table('Source:','load_RPPA_data.m', cd), '../processeddata/dataFoldChange.xlsx', 'Sheet', 'anno')
 
 save mat_dataFoldChange.mat dataFoldChange* dataFC*

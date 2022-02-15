@@ -1,4 +1,12 @@
+% fig_graph_extended ... Script visualising the consensus network as a graph
+%
+%   Input: mat_bmra_analysis_ConsNW_19-09-09.mat
+%   Outputs: ../figs/graph_NW_2extended_sensitive_tmp.svg 
+%            ../figs/graph_NW_2extended_resistant_tmp.svg
+%   Dependencies: ./graph_NW_2_base_extended_v2.svg, 
+%            svg_setPathColorByLabel.m, svg_setPathWidthByLabel
 
+% Load infeered network data from mat file (saved from bmra_run.m) 
 load mat_bmra_analysis_ConsNW_19-09-09.mat
 
 %These are the interaction in the svg file:
