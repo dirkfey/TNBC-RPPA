@@ -28,9 +28,15 @@
 *.pdf 
 *.png 
 *.xlsx 
+!/rawdata/*.xlsx
+!/processeddata/*.xlsx
+
+## ignore MS temp files
+~*
 
 ## Figure files
 *.svg
+!/BMRA/*.svg
 
 ## Folders:
 /figs/*
